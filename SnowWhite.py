@@ -1,6 +1,9 @@
 from appJar import gui
 import time,googlemaps,forecastio,requests,random
 
+# insert Google + NyTimes API key
+# Latitude and Longitude is the coordinates that you want to pull for weather.
+# insert lat + long example.
 GoogleMapsAPIKey = ''
 NYTAPIKey = ''
 DarkSkyAPIKey = ''
@@ -24,24 +27,31 @@ ListOfIcons = {
     'tornado': "./Icons/Tornado.gif",
     'hail': "./Icons/Hail.gif"
 }
-Weather = forecastio.load_forecast(DarkSkyAPIKey,Latitude,Longitude)
+# Weather var will query DarkSky for weather info
+Weather = forecastio.load_forecast(DarkSkyAPIKey, Latitude, Longitude)
+# WeatherIcon var pulls the string value of the icon ('clear-day')
 WeatherIcon = Weather.currently().icon
 WeatherSummary = Weather.hourly().summary
+# The var WeatherIcon should, be in the list of icons above.  If not (due to updates) the icon will be blank.
 if WeatherIcon in ListOfIcons:
     WeatherIconImage = ListOfIcons[Weather.currently().icon]
 else:
     WeatherIconImage = ''
 Temperature = round(Weather.currently().temperature)
-
+# NYTAPIRequest var is making the REST API call to nytimes + cacenating NYTAPITOken at the end.
 NYTAPIRequest = requests.get("https://api.nytimes.com/svc/topstories/v2/home.json?api-key=" + NYTAPIKey)
+# NYTArticles var takes the NYTAPIRequest and runs the json method to get JSON formatted data.
 NYTArticles = NYTAPIRequest.json()
-NYTHeadline1 = NYTArticles['results'][random.randrange(0,NYTArticles['num_results'])]['title']
-NYTHeadline2 = NYTArticles['results'][random.randrange(0,NYTArticles['num_results'])]['title']
+# NYTHeadline1 access the 'results' inside the json data, since numbers are from 0 to a large amount,
+#  we will grab a psudo randomn article Dito for NYTArticles2
+NYTHeadline1 = NYTArticles['results'][random.randrange(0, NYTArticles['num_results'])]['title']
+NYTHeadline2 = NYTArticles['results'][random.randrange(0, NYTArticles['num_results'])]['title']
 while NYTHeadline2 == NYTHeadline1:
     NYTHeadline2 = NYTArticles['results'][random.randrange(0, NYTArticles['num_results'])]['title']
 NYTHeadline3 = NYTArticles['results'][random.randrange(0, NYTArticles['num_results'])]['title']
 while NYTHeadline3 == NYTHeadline1 or NYTHeadline3 == NYTHeadline2:
     NYTHeadline3 = NYTArticles['results'][random.randrange(0, NYTArticles['num_results'])]['title']
+# if Headline Articles 1 matches 2, then 2 chooses a new article.  Same if 3 chooses 1 or 2
 
 def Update_Labels():
     CurrentTime = time.strftime("%H:%M")
@@ -50,11 +60,12 @@ def Update_Labels():
     global NewsUpdateTime
     global WeatherIcon
     global Temperature
-
+# Magic Mirror is defined below, but since this is a function that is called later, its ok
     if CurrentDate != MagicMirror.getLabel("Date"):
-        MagicMirror.setLabel("Date",CurrentDate)
+        MagicMirror.setLabel("Date", CurrentDate)
     if CurrentTime != MagicMirror.getLabel("Time"):
-        MagicMirror.setLabel("Time",CurrentTime)
+        MagicMirror.setLabel("Time", CurrentTime)
+# if 30 min has elaspsed, the code below will run to update icon, image, and temperature
 
     if (time.time() - WeatherUpdateTime) >= 1800:
         #Update the weather every 30 minutes
@@ -73,7 +84,7 @@ def Update_Labels():
             MagicMirror.setLabel("TempDegree",str(UpdatedTemperature) + u'\u00B0')
             Temperature = UpdatedTemperature
         WeatherUpdateTime = time.time()
-
+# if 60 min has elapsed, then the code below will run to update the Headlines.  This is possible because 
     if (time.time() - NewsUpdateTime) >= 3600:
         NYTAPIRequest = requests.get("https://api.nytimes.com/svc/topstories/v2/home.json?api-key=" + NYTAPIKey)
         NYTArticles = NYTAPIRequest.json()

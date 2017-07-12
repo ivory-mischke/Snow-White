@@ -1,52 +1,44 @@
 import os
 if os.path.exists('/SnowWhite.py'):
-    FullName = os.path.abspath('/SnowWhite.py')
+    FullFileName = os.path.abspath('/SnowWhite.py')
     try:
         import appJar
         print('appJar already installed')
-    except ModuleNotFoundError:
+    except:
         try:
             print('Attempting to install appJar module...')
-            os.system('pip3 install appJar')
+            os.system('pip install appJar')
             print('Successfully installed appJar module')
         except:
-            raise "Failed to install 'appJar' module"
-    try:
-        import nytimesarticle
-        print('nytimesarticle already installed')
-    except ModuleNotFoundError:
-        try:
-            print('Attempting to install nytimesarticle module...')
-            os.system('pip3 install nytimesarticle')
-            print('Successfully installed nytimesarticle module')
-        except:
-            raise "Failed to install 'nytimesarticle' module"
+            raise Exception("Failed to install 'appJar' module")
     try:
         import googlemaps
         print('googlemaps already installed')
-    except ModuleNotFoundError:
+    except:
         try:
             print('Attempting to install googlemaps module...')
-            os.system('pip3 install googlemaps')
+            os.system('pip install googlemaps')
             print('Successfully installed googlemaps module')
         except:
-            raise "Failed to install 'googlemaps' module"
+            raise Exception("Failed to install 'googlemaps' module")
     try:
         import forecastio
         print('forecastio already installed')
-    except ModuleNotFoundError:
+    except:
         try:
             print('Attempting to install python-forecastio module...')
-            os.system('pip3 install python-forecastio')
+            os.system('pip install python-forecastio')
             print('Successfully installed python-forecastio module')
         except:
-            raise "Failed to install 'python-forecastio' module"
+            raise Exception("Failed to install 'python-forecastio' module")
 
-    print('Attempting to create crontab entry...')
-    os.system("crontab -l > /tmp/cronfile.txt")
-    os.system("echo '@reboot python " + FullName + "' >> /tmp/cronfile.txt")
-    os.system("crontab < /tmp/cronfile.txt")
-    os.system("rm /tmp/cronfile.txt")
-    print('Successfully created crontab entry')
+    print('Attempting to make SnowWhite.py auto-start at boot up...')
+    try:
+        os.system("echo '@sudo /usr/bin/python " + FullFileName + "' >> ~/.config/lxsession/LXDE-pi/autostart")
+        os.system("sudo chmod +x " + FullFileName)
+        os.system("xrandr --output HDMI1 --rotate left")
+    except:
+            raise Exception("Failed to make SnowWhite.py auto-start at boot up")
+    print('Successfully made SnowWhite.py auto-start at boot up')
 else:
-    raise "Cannot find SnowWhite.py file"
+    raise Exception("Cannot find SnowWhite.py file")

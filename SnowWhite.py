@@ -1,16 +1,19 @@
 from appJar import gui
-import time,googlemaps,forecastio,requests,random
+import time,forecastio,requests,random
 
-# insert Google + NyTimes API key
-# Latitude and Longitude is the coordinates that you want to pull for weather.
-# insert lat + long example.
-GoogleMapsAPIKey = ''
-NYTAPIKey = ''
-DarkSkyAPIKey = ''
-Latitude = ''
-Longitude = ''
-WeatherUpdateTime = time.time()
-NewsUpdateTime = time.time()
+######## START of user defined variables ########
+
+# insert Google, NyTimes and DarkSky API key
+# Address is used for weather and starting location for google maps directions
+#GoogleMapsAPIKey = ''
+
+
+######## END of user defined variables ########
+
+#GoogleMaps = googlemaps.Client(GoogleMapsAPIKey)
+#GeoLocation = GoogleMaps.geocode(Address)
+Latitude = 32.9783157
+Longitude = -117.0759214
 
 ListOfIcons = {
     'clear-day': "./Icons/Sun.gif",
@@ -31,7 +34,6 @@ ListOfIcons = {
 Weather = forecastio.load_forecast(DarkSkyAPIKey, Latitude, Longitude)
 # WeatherIcon var pulls the string value of the icon ('clear-day')
 WeatherIcon = Weather.currently().icon
-WeatherSummary = Weather.hourly().summary
 # The var WeatherIcon should, be in the list of icons above.  If not (due to updates) the icon will be blank.
 if WeatherIcon in ListOfIcons:
     WeatherIconImage = ListOfIcons[Weather.currently().icon]
@@ -43,7 +45,7 @@ NYTAPIRequest = requests.get("https://api.nytimes.com/svc/topstories/v2/home.jso
 # NYTArticles var takes the NYTAPIRequest and runs the json method to get JSON formatted data.
 NYTArticles = NYTAPIRequest.json()
 # NYTHeadline1 access the 'results' inside the json data, since numbers are from 0 to a large amount,
-#  we will grab a psudo randomn article Dito for NYTArticles2
+#  we will grab a pseudo random article Dito for NYTArticles2
 NYTHeadline1 = NYTArticles['results'][random.randrange(0, NYTArticles['num_results'])]['title']
 NYTHeadline2 = NYTArticles['results'][random.randrange(0, NYTArticles['num_results'])]['title']
 while NYTHeadline2 == NYTHeadline1:
@@ -100,27 +102,30 @@ def Update_Labels():
         MagicMirror.setLabel("NYTHeadline3", NewNYTHeadline3)
         NewsUpdateTime = time.time()
 
+WeatherUpdateTime = time.time()
+NewsUpdateTime = time.time()
+
 MagicMirror = gui()
 MagicMirror.setFullscreen()
 MagicMirror.setBg("black")
-
-MagicMirror.setSticky("nw")
-MagicMirror.startPanedFrame("WeatherPane",0,0)
+#Setting sticky, places the objects that follow in that section of the paned frame
+MagicMirror.setSticky("ne")
+#Setting paned frames, allows multiple objects to occupy one section. 0,0 represents column / row
+MagicMirror.startPanedFrame("WeatherPane",0,1)
+#Sets background to black
 MagicMirror.setBg("black")
 MagicMirror.addImage("TempIcon",WeatherIconImage)
+MagicMirror.setImageAnchor("TempIcon","s")
 MagicMirror.addLabel("TempDegree",str(Temperature) + u'\u00B0')
 MagicMirror.getLabelWidget("TempDegree").config(font="Helvetica 40 bold")
 MagicMirror.setLabelFg("TempDegree","White")
-MagicMirror.addLabel("TempSummary",WeatherSummary)
-MagicMirror.getLabelWidget("TempSummary").config(font="Helvetica 20 bold")
-MagicMirror.setLabelFg("TempSummary","White")
-MagicMirror.setLabelAlign("TempSummary","left")
 MagicMirror.stopPanedFrame()
 
-MagicMirror.setSticky("ne")
-MagicMirror.startPanedFrame("DateTimePane",0,1)
+MagicMirror.setSticky("nw")
+MagicMirror.startPanedFrame("DateTimePane",0,0)
 MagicMirror.setBg("black")
 MagicMirror.addLabel("Time",time.strftime("%H:%M"))
+MagicMirror.setLabelAnchor("Time","s")
 MagicMirror.getLabelWidget("Time").config(font="Helvetica 40 bold")
 MagicMirror.setLabelFg("Time","White")
 MagicMirror.addLabel("Date",time.strftime("%m/%d/%y"))
@@ -147,7 +152,7 @@ MagicMirror.stopPanedFrame()
 MagicMirror.setSticky("se")
 MagicMirror.startPanedFrame("GoogleMapsPane",1,1)
 MagicMirror.setBg("black")
-MagicMirror.addLabel("GoogleMapsDestination","Say: 'Set Destination (Destination)'")
+MagicMirror.addLabel("GoogleMapsDestination","")
 MagicMirror.getLabelWidget("GoogleMapsDestination").config(font="Helvetica 8 bold")
 MagicMirror.setLabelFg("GoogleMapsDestination","White")
 MagicMirror.stopPanedFrame()

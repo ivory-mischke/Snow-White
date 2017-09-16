@@ -1,12 +1,15 @@
 from appJar import gui
 import time,forecastio,requests,random
+from datetime import datetime
 
 ######## START of user defined variables ########
 
 # insert Google, NyTimes and DarkSky API key
 # Address is used for weather and starting location for google maps directions
 #GoogleMapsAPIKey = ''
-
+NYTAPIKey = ''
+DarkSkyAPIKey = ''
+Address = '' #format is: 1234 nowhere st, san diego, ca
 
 ######## END of user defined variables ########
 
@@ -60,6 +63,7 @@ def Update_Labels():
     CurrentDate = time.strftime("%m/%d/%y")
     global WeatherUpdateTime
     global NewsUpdateTime
+    global PiUpTime
     global WeatherIcon
     global Temperature
 # Magic Mirror is defined below, but since this is a function that is called later, its ok
@@ -86,8 +90,8 @@ def Update_Labels():
             MagicMirror.setLabel("TempDegree",str(UpdatedTemperature) + u'\u00B0')
             Temperature = UpdatedTemperature
         WeatherUpdateTime = time.time()
-# if 60 min has elapsed, then the code below will run to update the Headlines.  This is possible because 
-    if (time.time() - NewsUpdateTime) >= 3600:
+# if 5 min has elapsed, then the code below will run to update the Headlines.  This is possible because 
+    if (time.time() - NewsUpdateTime) >= 300:
         NYTAPIRequest = requests.get("https://api.nytimes.com/svc/topstories/v2/home.json?api-key=" + NYTAPIKey)
         NYTArticles = NYTAPIRequest.json()
         NewNYTHeadline1 = NYTArticles['results'][random.randrange(0, NYTArticles['num_results'])]['title']
@@ -101,9 +105,13 @@ def Update_Labels():
         MagicMirror.setLabel("NYTHeadline2", NewNYTHeadline2)
         MagicMirror.setLabel("NYTHeadline3", NewNYTHeadline3)
         NewsUpdateTime = time.time()
+# Turn off the pi after an hour of use.  Until there is a physical button that safely shutdowns the pi, htis is the next best thing.        
+    if (time.time() - PiUpTime) >= 3600:
+        os.system("sudo shutdown")
 
 WeatherUpdateTime = time.time()
 NewsUpdateTime = time.time()
+PiUpTime = time.time()
 
 MagicMirror = gui()
 MagicMirror.setFullscreen()

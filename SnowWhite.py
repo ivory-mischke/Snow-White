@@ -1,16 +1,21 @@
 from appJar import gui
-import time,googlemaps,forecastio,requests,random
+import time,forecastio,requests,random
+from datetime import datetime
 
-# insert Google + NyTimes API key
-# Latitude and Longitude is the coordinates that you want to pull for weather.
-# insert lat + long example.
-GoogleMapsAPIKey = ''
+######## START of user defined variables ########
+
+# insert Google, NyTimes and DarkSky API key
+# Address is used for weather and starting location for google maps directions
+#GoogleMapsAPIKey = ''
 NYTAPIKey = ''
 DarkSkyAPIKey = ''
-Latitude = ''
-Longitude = ''
-WeatherUpdateTime = time.time()
-NewsUpdateTime = time.time()
+#Address = '' #format is: 1234 nowhere st, san diego, ca
+Latitude = 0
+Longitude = 0
+######## END of user defined variables ########
+
+#GoogleMaps = googlemaps.Client(GoogleMapsAPIKey)
+#GeoLocation = GoogleMaps.geocode(Address)
 
 ListOfIcons = {
     'clear-day': "./Icons/Sun.gif",
@@ -31,7 +36,6 @@ ListOfIcons = {
 Weather = forecastio.load_forecast(DarkSkyAPIKey, Latitude, Longitude)
 # WeatherIcon var pulls the string value of the icon ('clear-day')
 WeatherIcon = Weather.currently().icon
-WeatherSummary = Weather.hourly().summary
 # The var WeatherIcon should, be in the list of icons above.  If not (due to updates) the icon will be blank.
 if WeatherIcon in ListOfIcons:
     WeatherIconImage = ListOfIcons[Weather.currently().icon]
@@ -43,7 +47,7 @@ NYTAPIRequest = requests.get("https://api.nytimes.com/svc/topstories/v2/home.jso
 # NYTArticles var takes the NYTAPIRequest and runs the json method to get JSON formatted data.
 NYTArticles = NYTAPIRequest.json()
 # NYTHeadline1 access the 'results' inside the json data, since numbers are from 0 to a large amount,
-#  we will grab a psudo randomn article Dito for NYTArticles2
+#  we will grab a pseudo random article Dito for NYTArticles2
 NYTHeadline1 = NYTArticles['results'][random.randrange(0, NYTArticles['num_results'])]['title']
 NYTHeadline2 = NYTArticles['results'][random.randrange(0, NYTArticles['num_results'])]['title']
 while NYTHeadline2 == NYTHeadline1:
@@ -58,6 +62,7 @@ def Update_Labels():
     CurrentDate = time.strftime("%m/%d/%y")
     global WeatherUpdateTime
     global NewsUpdateTime
+    global PiUpTime
     global WeatherIcon
     global Temperature
 # Magic Mirror is defined below, but since this is a function that is called later, its ok
@@ -84,8 +89,8 @@ def Update_Labels():
             MagicMirror.setLabel("TempDegree",str(UpdatedTemperature) + u'\u00B0')
             Temperature = UpdatedTemperature
         WeatherUpdateTime = time.time()
-# if 60 min has elapsed, then the code below will run to update the Headlines.  This is possible because 
-    if (time.time() - NewsUpdateTime) >= 3600:
+# if 5 min has elapsed, then the code below will run to update the Headlines.  This is possible because 
+    if (time.time() - NewsUpdateTime) >= 300:
         NYTAPIRequest = requests.get("https://api.nytimes.com/svc/topstories/v2/home.json?api-key=" + NYTAPIKey)
         NYTArticles = NYTAPIRequest.json()
         NewNYTHeadline1 = NYTArticles['results'][random.randrange(0, NYTArticles['num_results'])]['title']
@@ -99,28 +104,35 @@ def Update_Labels():
         MagicMirror.setLabel("NYTHeadline2", NewNYTHeadline2)
         MagicMirror.setLabel("NYTHeadline3", NewNYTHeadline3)
         NewsUpdateTime = time.time()
+# Turn off the pi after an hour of use.  Until there is a physical button that safely shutdowns the pi, htis is the next best thing.        
+    if (time.time() - PiUpTime) >= 3600:
+        os.system("sudo shutdown")
+
+WeatherUpdateTime = time.time()
+NewsUpdateTime = time.time()
+PiUpTime = time.time()
 
 MagicMirror = gui()
 MagicMirror.setFullscreen()
 MagicMirror.setBg("black")
-
-MagicMirror.setSticky("nw")
-MagicMirror.startPanedFrame("WeatherPane",0,0)
+#Setting sticky, places the objects that follow in that section of the paned frame
+MagicMirror.setSticky("ne")
+#Setting paned frames, allows multiple objects to occupy one section. 0,0 represents column / row
+MagicMirror.startPanedFrame("WeatherPane",0,1)
+#Sets background to black
 MagicMirror.setBg("black")
 MagicMirror.addImage("TempIcon",WeatherIconImage)
+MagicMirror.setImageAnchor("TempIcon","s")
 MagicMirror.addLabel("TempDegree",str(Temperature) + u'\u00B0')
 MagicMirror.getLabelWidget("TempDegree").config(font="Helvetica 40 bold")
 MagicMirror.setLabelFg("TempDegree","White")
-MagicMirror.addLabel("TempSummary",WeatherSummary)
-MagicMirror.getLabelWidget("TempSummary").config(font="Helvetica 20 bold")
-MagicMirror.setLabelFg("TempSummary","White")
-MagicMirror.setLabelAlign("TempSummary","left")
 MagicMirror.stopPanedFrame()
 
-MagicMirror.setSticky("ne")
-MagicMirror.startPanedFrame("DateTimePane",0,1)
+MagicMirror.setSticky("nw")
+MagicMirror.startPanedFrame("DateTimePane",0,0)
 MagicMirror.setBg("black")
 MagicMirror.addLabel("Time",time.strftime("%H:%M"))
+MagicMirror.setLabelAnchor("Time","s")
 MagicMirror.getLabelWidget("Time").config(font="Helvetica 40 bold")
 MagicMirror.setLabelFg("Time","White")
 MagicMirror.addLabel("Date",time.strftime("%m/%d/%y"))
@@ -147,7 +159,7 @@ MagicMirror.stopPanedFrame()
 MagicMirror.setSticky("se")
 MagicMirror.startPanedFrame("GoogleMapsPane",1,1)
 MagicMirror.setBg("black")
-MagicMirror.addLabel("GoogleMapsDestination","Say: 'Set Destination (Destination)'")
+MagicMirror.addLabel("GoogleMapsDestination","")
 MagicMirror.getLabelWidget("GoogleMapsDestination").config(font="Helvetica 8 bold")
 MagicMirror.setLabelFg("GoogleMapsDestination","White")
 MagicMirror.stopPanedFrame()

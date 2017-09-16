@@ -47,9 +47,9 @@ if os.path.exists('SnowWhite.py'):
             for line in fileinput.input('/boot/config.txt', inplace = True):
                 if re.search('display_rotate', line):
                     DisplayRotateLine = (re.search('display_rotate', line)).string
-                    print(line.replace(DisplayRotateLine, "display_rotate=3"))
+                    print line.replace(DisplayRotateLine, "display_rotate=3")
                 else:
-                    print(line,)
+                    print line,
             print("Portrait display has been set.")
         else:
             os.system('sudo echo "display_rotate=3" >> /boot/config.txt')
@@ -60,9 +60,9 @@ if os.path.exists('SnowWhite.py'):
             for line in fileinput.input('/boot/config.txt', inplace = True):
                 if re.search('display_rotate', line):
                     DisplayRotateLine = (re.search('display_rotate', line)).string
-                    print(line.replace(DisplayRotateLine, "display_rotate=0"))
+                    print line.replace(DisplayRotateLine, "display_rotate=0")
                 else:
-                    print(line,)
+                    print line,
             print("Landscape display has been set.")
         else:
             os.system('sudo echo "display_rotate=0" >> /boot/config.txt')

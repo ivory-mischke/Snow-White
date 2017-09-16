@@ -9,14 +9,13 @@ from datetime import datetime
 #GoogleMapsAPIKey = ''
 NYTAPIKey = ''
 DarkSkyAPIKey = ''
-Address = '' #format is: 1234 nowhere st, san diego, ca
-
+#Address = '' #format is: 1234 nowhere st, san diego, ca
+Latitude = 0
+Longitude = 0
 ######## END of user defined variables ########
 
 #GoogleMaps = googlemaps.Client(GoogleMapsAPIKey)
 #GeoLocation = GoogleMaps.geocode(Address)
-Latitude = 32.9783157
-Longitude = -117.0759214
 
 ListOfIcons = {
     'clear-day': "./Icons/Sun.gif",

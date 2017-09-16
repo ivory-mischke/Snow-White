@@ -1,7 +1,9 @@
 import os
 import fileinput
+import subprocess
+import re
 #ScreenOrientation = 'Landscape'
-#ScreenOrientation = 'Portrait'
+ScreenOrientation = 'Portrait'
 
 if os.path.exists('SnowWhite.py'):
     FullFileName = os.path.abspath('SnowWhite.py')
@@ -31,25 +33,28 @@ if os.path.exists('SnowWhite.py'):
         os.system("echo '@sudo /usr/bin/python " + FullFileName + "' >> ~/.config/lxsession/LXDE-pi/autostart")
         os.system("sudo chmod +x " + FullFileName)
         #modify /boot/config.txt add display_rotate=3
-        os.system("xrandr --output HDMI1 --rotate left")
     except:
             raise Exception("Failed to make SnowWhite.py auto-start at boot up")
     print('Successfully made SnowWhite.py auto-start at boot up')
 else:
     raise Exception("Cannot find SnowWhite.py file")
 
-ScreenSaverCheck = os.system('cat /etc/lightdm/lightdm.conf | grep "xserver-command=X -s 0 -dpms"')
-if ScreenSaverCheck != "xserver-command=X -s 0 -dpms":
+ScreenSaverCheck = subprocess.Popen(['grep','xserver-command=X -s 0 -dpms', '/etc/lightdm/lightdm.conf'], stdout=subprocess.PIPE).communicate()[0]
+if not re.search('xserver-command=X -s 0 -dpms', ScreenSaverCheck):
     os.system('sudo echo "xserver-command=X -s 0 -dpms" >> /etc/lightdm/lightdm.conf')
     print('Successfully turned off screen saver')
 else:
     print('Screen saver already turned off')
 
 if ScreenOrientation == 'Portrait':
-    ScreenOrientationCheck = os.system('cat /boot/config.txt | grep "display_rotate"')
-    if "dispay_rotate" in ScreenOrientationCheck:
+    ScreenOrientationCheck = subprocess.Popen(['grep','display_rotate', '/boot/config.txt'], stdout=subprocess.PIPE).communicate()[0]
+    if re.search('display_rotate', ScreenOrientationCheck):
         for line in fileinput.input('/boot/config.txt', inplace = True):
-            print line.replace("*display_rotate*", "display_rotate=3")
+            if re.search('display_rotate', line):
+                DisplayRotateLine = (re.search('display_rotate', line)).string
+                print line.replace(DisplayRotateLine, "display_rotate=3")
+            else:
+                print line
     else:
         os.system('sudo echo "display_rotate=3" >> /boot/config.txt')
-        print("Portrait display has been set.")
+    print("Portrait display has been set.")
